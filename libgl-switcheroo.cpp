@@ -2,6 +2,10 @@
 
 #include <fuse.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <cstring>
 #include <cstdio>
 #include <cassert>
@@ -33,15 +37,39 @@ static int sw_getattr(const char *path, struct stat *stbuf)
   return -ENOENT;
 }
 
+static bool ask_user(const char procname[])
+{
+  char xdlgbuf[256];
+  snprintf(xdlgbuf, 256, "Xdialog --stdout --check \"Remember my choice\" --no-tags --no-cancel "
+           "--radiolist \"Use OpenGL offloading for %s?\" 0x0 0 d \"Yes, use discrete GPU\" on "
+	   "i \"No, use integrated GPU\" off" , procname);
+  FILE *f = popen(xdlgbuf, "r");
+  char tag, check;
+  int n = fscanf(f, "%c\n%c", &tag, &check);
+  int r = pclose(f);
+  if (n != 2 || r)
+    return false;
+  return tag == 'd';
+}
+
 static bool need_switch()
 {
-  return true;
+  pid_t pid = fuse_get_context()->pid;
+  char pathbuf[32];
+  snprintf(pathbuf, 32, "/proc/%d/status", pid);
+  int fd = open(pathbuf, O_RDONLY);
+  char namebuf[32];
+  read(fd, namebuf, 32);
+  close(fd);
+  *strchr(namebuf, '\n') = 0;
+  char *procname = namebuf + 6;
+  return ask_user(procname);
 }
 
 static int sw_readlink(const char *path, char *buf, size_t bufsize)
 {
   assert(strlen(path) >= strlen(LIBNAME));
-  snprintf(buf, bufsize, LIBPATH "%.*s%s", strlen(path) - strlen(LIBNAME), path,
+  snprintf(buf, bufsize, LIBPATH "%.*s%s", (int)(strlen(path) - strlen(LIBNAME)), path,
            need_switch() ? ALTPATH LIBNAME : LIBNAME);
   return 0;
 }
