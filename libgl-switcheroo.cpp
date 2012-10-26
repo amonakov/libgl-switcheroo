@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstring>
+#include <cstdlib>
 #include <cstdio>
 #include <cassert>
 #include <map>
@@ -55,7 +56,23 @@ static bool ask_user(const char procname[], bool &remember)
   return tag == 'd';
 }
 
-static std::map<std::string, bool> memos;
+static char *conffile;
+
+static std::map<std::string, bool> read_memos()
+{
+  asprintf(&conffile, "%s/libgl_switcheroo.conf", getenv("XDG_CONFIG_HOME"));
+  FILE *f = fopen(conffile, "r");
+  std::map<std::string, bool> memos;
+  if (!f)
+    return memos;
+  char c, procname[17];
+  while (fscanf(f, "%c%16[^\n]\n", &c, procname) == 2)
+    memos[std::string(procname)] = c == '+';
+  fclose(f);
+  return memos;
+}
+
+static std::map<std::string, bool> memos(read_memos());
 
 static bool lookup_memo(const char procname[], bool &choice)
 {
@@ -68,6 +85,9 @@ static bool lookup_memo(const char procname[], bool &choice)
 static void add_memo(const char procname[], bool choice)
 {
   memos[std::string(procname)] = choice;
+  FILE *f = fopen(conffile, "a");
+  fprintf(f, "%c%s\n", choice ? '+' : '-', procname);
+  fclose(f);
 }
 
 static bool need_switch()
