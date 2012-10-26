@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <cstring>
 #include <cstdio>
+#include <cassert>
 
 #define LIBNAME "/libGL.so.1"
 
@@ -26,15 +27,22 @@ static int sw_getattr(const char *path, struct stat *stbuf)
   if (!strcmp(path + strlen(path) - strlen(LIBNAME), LIBNAME))
   {
     stbuf->st_mode = S_IFLNK | 0777;
-    stbuf->st_size = strlen(LIBPATH) + strlen(path);
+    stbuf->st_size = strlen(LIBPATH) + strlen(ALTPATH) + strlen(path);
     return 0;
   }
   return -ENOENT;
 }
 
+static bool need_switch()
+{
+  return true;
+}
+
 static int sw_readlink(const char *path, char *buf, size_t bufsize)
 {
-  snprintf(buf, bufsize, LIBPATH "%s", path);
+  assert(strlen(path) >= strlen(LIBNAME));
+  snprintf(buf, bufsize, LIBPATH "%.*s%s", strlen(path) - strlen(LIBNAME), path,
+           need_switch() ? ALTPATH LIBNAME : LIBNAME);
   return 0;
 }
 

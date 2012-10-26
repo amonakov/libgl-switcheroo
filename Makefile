@@ -4,8 +4,10 @@ CXXFLAGS ?= -Wall -O2 -march=native -g
 LIBPATH   := "/usr"
 LIB64PATH := "/lib"
 LIB32PATH := "/lib32"
+ALTPATH   := "/primus"
 
 CXXFLAGS += -DLIBPATH='$(LIBPATH)'
+CXXFLAGS += -DALTPATH='$(ALTPATH)'
 
 ifneq "$(LIB64PATH)" ""
 CXXFLAGS += -DLIB64PATH='$(LIB64PATH)'
