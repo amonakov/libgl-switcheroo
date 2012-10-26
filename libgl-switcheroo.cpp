@@ -9,6 +9,8 @@
 #include <cstring>
 #include <cstdio>
 #include <cassert>
+#include <map>
+#include <string>
 
 #define LIBNAME "/libGL.so.1"
 
@@ -37,7 +39,7 @@ static int sw_getattr(const char *path, struct stat *stbuf)
   return -ENOENT;
 }
 
-static bool ask_user(const char procname[])
+static bool ask_user(const char procname[], bool &remember)
 {
   char xdlgbuf[256];
   snprintf(xdlgbuf, 256, "Xdialog --stdout --check \"Remember my choice\" --no-tags --no-cancel "
@@ -49,7 +51,23 @@ static bool ask_user(const char procname[])
   int r = pclose(f);
   if (n != 2 || r)
     return false;
+  remember = check == 'c';
   return tag == 'd';
+}
+
+static std::map<std::string, bool> memos;
+
+static bool lookup_memo(const char procname[], bool &choice)
+{
+  std::map<std::string, bool>::iterator i = memos.find(std::string(procname));
+  if (i != memos.end())
+    choice = i->second;
+  return i != memos.end();
+}
+
+static void add_memo(const char procname[], bool choice)
+{
+  memos[std::string(procname)] = choice;
 }
 
 static bool need_switch()
@@ -63,7 +81,14 @@ static bool need_switch()
   close(fd);
   *strchr(namebuf, '\n') = 0;
   char *procname = namebuf + 6;
-  return ask_user(procname);
+  bool switch_yes;
+  if (lookup_memo(procname, switch_yes))
+    return switch_yes;
+  bool remember = false;
+  switch_yes = ask_user(procname, remember);
+  if (remember)
+    add_memo(procname, switch_yes);
+  return switch_yes;
 }
 
 static int sw_readlink(const char *path, char *buf, size_t bufsize)
