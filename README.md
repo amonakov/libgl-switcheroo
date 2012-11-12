@@ -9,18 +9,20 @@ User choices are saved in `$XDG_CONFIG_HOME/libgl-switcheroo.conf`.
 Usage
 -----
 
-Install Xdialog.
-
 Add the following lines into `~/.xprofile`:
 
-    LIBGL_SWITCHEROO_PATH=$HOME/.libgl-switcheroo
-    mkdir $LIBGL_SWITCHEROO_PATH
-    libgl-switcheroo $LIBGL_SWITCHEROO_PATH
-    export LD_LIBRARY_PATH=$LIBGL_SWITCHEROO_PATH/\$LIB${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+    mkdir -p /tmp/libgl-switcheroo-$USER/fs
+    gtkglswitch &
+    libgl-switcheroo /tmp/libgl-switcheroo-$USER/fs &
 
 If you are using KDM, GDM, or LXDM to login into an X session, the commands
 from `~/.xprofile` are executed.  Otherwise, make sure that `.xprofile` is
 sourced during X session startup (add `. ~/.xprofile` into your `.xinitrc`).
+
+You can then run the following command in a shell session to make all programs
+run from that session go through the libGL switcheroo (useful for Steam):
+
+    export LD_LIBRARY_PATH=/tmp/libgl-switcheroo-$USER/fs/\$LIB${LD_LIBRARY_PATH+:}$LD_LIBRARY_PATH
 
 Building
 --------
