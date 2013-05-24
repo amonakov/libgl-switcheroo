@@ -8,9 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define _stringify(S) #S
-#define  stringify(S) _stringify(S)
-
 static int need_switch()
 {
   int sock, do_switch = 0;
@@ -37,7 +34,7 @@ char *la_objsearch(const char *name, uintptr_t *cookie, unsigned flag)
 {
   if (flag != LA_SER_ORIG || strcmp(name, "libGL.so.1"))
     return (char *) name; // Not the droid we're looking for
-  return need_switch() ? stringify(ALTPATH) : (char *)name;
+  return need_switch() ? ALTPATH : (char *)name;
 }
 
 unsigned la_version(unsigned v)

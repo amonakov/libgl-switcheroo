@@ -7,7 +7,7 @@ LIBDIR   ?= lib
 
 ALTPATH  := /usr/$$LIB/primus/libGL.so.1
 
-CFLAGS += -DALTPATH='$(ALTPATH)'
+CFLAGS += -DALTPATH='"$(ALTPATH)"'
 
 all: $(LIBDIR)/libgl-switcheroo.so gtkglswitch
 
