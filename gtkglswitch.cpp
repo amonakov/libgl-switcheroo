@@ -2,6 +2,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <cstdio>
 #include <cstdlib>
 
@@ -122,10 +123,7 @@ int main(int argc, char *argv[])
   unlink(addr.sun_path);
   int sock = socket(PF_UNIX, SOCK_STREAM, 0);
   if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-  {
-    perror("bind");
-    exit(1);
-  }
+    die("failed to bind socket %s: %s", addr.sun_path, strerror(errno));
   listen(sock, 16);
   gdk_input_add(sock, GDK_INPUT_READ, gdk_input_cb, NULL);
   gtk_main();
