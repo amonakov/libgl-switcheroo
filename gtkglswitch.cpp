@@ -10,6 +10,9 @@
 
 #include <gtk/gtk.h>
 
+#define die(msg, ...) \
+{ fprintf(stderr, "gtkglswitch: fatal: " msg "\n", ##__VA_ARGS__); exit(1); }
+
 static bool ask_user(const char procname[], bool &remember)
 {
   GtkWidget *dialog = gtk_message_dialog_new (NULL,
@@ -38,7 +41,16 @@ static char *conffile;
 
 static std::map<std::string, bool> read_memos()
 {
-  asprintf(&conffile, "%s/libgl_switcheroo.conf", getenv("XDG_CONFIG_HOME"));
+  const char *configdir, *homedir;
+  int r;
+  if ((configdir = getenv("XDG_CONFIG_HOME")))
+    r = asprintf(&conffile, "%s/libgl_switcheroo.conf", configdir);
+  else if ((homedir = getenv("HOME")))
+    r = asprintf(&conffile, "%s/.config/libgl_switcheroo.conf", homedir);
+  else
+    die("XDG_CONFIG_HOME and HOME are not set");
+  if (r < 0)
+    die("asprintf failed");
   FILE *f = fopen(conffile, "r");
   std::map<std::string, bool> memos;
   if (!f)
@@ -64,6 +76,8 @@ static void add_memo(const char procname[], bool choice)
 {
   memos[std::string(procname)] = choice;
   FILE *f = fopen(conffile, "a");
+  if (!f)
+    die("failed to open %s for writing", conffile);
   fprintf(f, "%c%s\n", choice ? '+' : '-', procname);
   fclose(f);
 }
