@@ -83,6 +83,11 @@ static void add_memo(const char procname[], bool choice)
   fclose(f);
 }
 
+static enum
+{
+  SWITCH_DEFAULT_ASK, SWITCH_DEFAULT_NO, SWITCH_DEFAULT_YES
+} switch_default;
+
 static bool need_switch(pid_t pid)
 {
   char pathbuf[32];
@@ -96,6 +101,8 @@ static bool need_switch(pid_t pid)
   bool switch_yes;
   if (lookup_memo(procname, switch_yes))
     return switch_yes;
+  if (switch_default != SWITCH_DEFAULT_ASK)
+    return switch_default == SWITCH_DEFAULT_YES;
   bool remember = false;
   switch_yes = ask_user(procname, remember);
   if (remember)
@@ -115,7 +122,22 @@ static void gdk_input_cb(void *data, int sock, GdkInputCondition cond)
 
 int main(int argc, char *argv[])
 {
-  gtk_init(&argc, &argv);
+  char *opt_default = NULL;
+  GError *error = NULL;
+  if (!gtk_init_with_args
+       (&argc, &argv, NULL,
+        (GOptionEntry[]){
+         {"default", 'D', 0, G_OPTION_ARG_STRING, &opt_default, "assume default answer", ""},
+          0},
+        NULL, &error))
+    die("GTK initialization failed: %s", error->message);
+  if (opt_default)
+    if (!strcmp(opt_default, "yes"))
+      switch_default = SWITCH_DEFAULT_YES;
+    else if (!strcmp(opt_default, "no"))
+      switch_default = SWITCH_DEFAULT_NO;
+    else
+      die("invalid default answer: %s", opt_default);
 
   struct sockaddr_un addr;
   addr.sun_family = AF_UNIX;
