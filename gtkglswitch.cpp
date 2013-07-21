@@ -12,7 +12,7 @@
 #include <gtk/gtk.h>
 
 #define die(msg, ...) \
-{ fprintf(stderr, "gtkglswitch: fatal: " msg "\n", ##__VA_ARGS__); exit(1); }
+({fprintf(stderr, "gtkglswitch: fatal: " msg "\n", ##__VA_ARGS__); exit(1);})
 
 static bool ask_user(const char procname[], bool &remember)
 {
