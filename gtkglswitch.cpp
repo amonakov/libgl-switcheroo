@@ -130,13 +130,14 @@ int main(int argc, char *argv[])
   };
   if (!gtk_init_with_args (&argc, &argv, NULL, entries, NULL, &error))
     die("GTK initialization failed: %s", error->message);
-  if (opt_default)
-    if (!strcmp(opt_default, "yes"))
-      switch_default = SWITCH_DEFAULT_YES;
-    else if (!strcmp(opt_default, "no"))
-      switch_default = SWITCH_DEFAULT_NO;
-    else
-      die("invalid default answer: %s", opt_default);
+  if (!opt_default)
+    switch_default = SWITCH_DEFAULT_ASK;
+  else if (!strcmp(opt_default, "yes"))
+    switch_default = SWITCH_DEFAULT_YES;
+  else if (!strcmp(opt_default, "no"))
+    switch_default = SWITCH_DEFAULT_NO;
+  else
+    die("invalid default answer: %s", opt_default);
 
   struct sockaddr_un addr;
   addr.sun_family = AF_UNIX;
