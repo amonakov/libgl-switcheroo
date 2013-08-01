@@ -124,12 +124,11 @@ int main(int argc, char *argv[])
 {
   char *opt_default = NULL;
   GError *error = NULL;
-  if (!gtk_init_with_args
-       (&argc, &argv, NULL,
-        (GOptionEntry[]){
-         {"default", 'D', 0, G_OPTION_ARG_STRING, &opt_default, "assume default answer", ""},
-          0},
-        NULL, &error))
+  static GOptionEntry entries[] = {
+    {"default", 'D', 0, G_OPTION_ARG_STRING, &opt_default, "assume default answer", ""},
+    {NULL}
+  };
+  if (!gtk_init_with_args (&argc, &argv, NULL, entries, NULL, &error))
     die("GTK initialization failed: %s", error->message);
   if (opt_default)
     if (!strcmp(opt_default, "yes"))
