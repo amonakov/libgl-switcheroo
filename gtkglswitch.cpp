@@ -124,20 +124,21 @@ int main(int argc, char *argv[])
 {
   char *opt_default = NULL;
   GError *error = NULL;
-  if (!gtk_init_with_args
-       (&argc, &argv, NULL,
-        (GOptionEntry[]){
+  static GOptionEntry entries [] = {
          {"default", 'D', 0, G_OPTION_ARG_STRING, &opt_default, "assume default answer", ""},
-          0},
-        NULL, &error))
+	 {NULL} 
+  };
+
+  if (!gtk_init_with_args(&argc, &argv, NULL, entries, NULL, &error))
     die("GTK initialization failed: %s", error->message);
-  if (opt_default)
+  if (opt_default) {
     if (!strcmp(opt_default, "yes"))
       switch_default = SWITCH_DEFAULT_YES;
     else if (!strcmp(opt_default, "no"))
       switch_default = SWITCH_DEFAULT_NO;
     else
       die("invalid default answer: %s", opt_default);
+  }
 
   struct sockaddr_un addr;
   addr.sun_family = AF_UNIX;
