@@ -88,6 +88,6 @@ int main(int argc, char *argv[])
 {
   pthread_mutex_init(&mutex, NULL);
   addr.sun_family = AF_UNIX;
-  snprintf(addr.sun_path, sizeof(addr.sun_path), "/tmp/libgl-switcheroo-%s/socket", getenv("USER"));
+  snprintf(addr.sun_path, sizeof(addr.sun_path), "%s/libgl-switcheroo/socket", getenv("XDG_RUNTIME_DIR"));
   return fuse_main(argc, argv, &ops, NULL);
 }
