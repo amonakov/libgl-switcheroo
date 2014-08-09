@@ -86,8 +86,12 @@ static struct fuse_operations ops = {
 
 int main(int argc, char *argv[])
 {
+  const char *runtimedir;
   pthread_mutex_init(&mutex, NULL);
   addr.sun_family = AF_UNIX;
-  snprintf(addr.sun_path, sizeof(addr.sun_path), "/tmp/libgl-switcheroo-%s/socket", getenv("USER"));
+  if ((runtimedir = getenv("XDG_RUNTIME_DIR")))
+    snprintf(addr.sun_path, sizeof(addr.sun_path), "%s/libgl-switcheroo/socket", runtimedir);
+  else
+    snprintf(addr.sun_path, sizeof(addr.sun_path), "/tmp/libgl-switcheroo-%s/socket", getenv("USER"));
   return fuse_main(argc, argv, &ops, NULL);
 }
