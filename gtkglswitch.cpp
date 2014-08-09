@@ -123,6 +123,7 @@ static void gdk_input_cb(void *data, int sock, GdkInputCondition cond)
 int main(int argc, char *argv[])
 {
   char *opt_default = NULL;
+  const char *runtimedir;
   GError *error = NULL;
   static GOptionEntry entries[] = {
     {"default", 'D', 0, G_OPTION_ARG_STRING, &opt_default, "assume default answer", ""},
@@ -141,7 +142,10 @@ int main(int argc, char *argv[])
 
   struct sockaddr_un addr;
   addr.sun_family = AF_UNIX;
-  snprintf(addr.sun_path, sizeof(addr.sun_path), "%s/libgl-switcheroo/socket", getenv("XDG_RUNTIME_DIR"));
+  if ((runtimedir = getenv("XDG_RUNTIME_DIR")))
+    snprintf(addr.sun_path, sizeof(addr.sun_path), "%s/libgl-switcheroo/socket", runtimedir);
+  else
+    snprintf(addr.sun_path, sizeof(addr.sun_path), "/tmp/libgl-switcheroo-%s/socket", getenv("USER"));
   unlink(addr.sun_path);
   int sock = socket(PF_UNIX, SOCK_STREAM, 0);
   if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
